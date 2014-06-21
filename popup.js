@@ -356,6 +356,59 @@ function sortByIndex(tabs) {
     move(tabs);
 }
 
+function login() {
+    console.log('call login');
+    var page = document.createElement('iframe');
+    page.setAttribute('width', '320');
+    page.setAttribute('height', '240');
+    page.setAttribute('frameborder', '0');
+    page.setAttribute('allowfullscreen', 'true');
+    var src = 'http://youtv.elasticbeanstalk.com/login';
+    console.log(src);
+    page.setAttribute('src', src);
+    document.body.appendChild(page);
+}
+
+function addVideo(videoId) {
+    //videoId = "GjpA7GE9wXI";
+    console.log('addVideo ' + videoId);
+    $.ajax({
+        type: "GET",
+        url: "http://youtv.elasticbeanstalk.com/userId",
+        data: {},
+        dataType: "json",
+        contentType: 'application/json',
+        success : function(response) {
+            if ('userId' in response) {
+                console.log('I am user ' + response.userId);
+                $.ajax({
+                    type: "POST",
+                    url: "http://youtv.elasticbeanstalk.com/video",
+                    data: {
+                        "userId": response.userId,
+                        "url": videoId,
+                        "title": "Dummy title",
+                    },
+                    //dataType: "json",
+                    //contentType: 'application/json',
+                    success : function(response) {
+                        console.log('add video call succeeded');
+                              },
+                    error : function(response) {
+                        console.log('add video call failed');
+                    }
+                });
+            } else {
+                login();                 
+                //addVideo();
+            }
+        },
+        error : function(response) {
+            console.log('get_user_id call failed');
+        }
+    });
+}
+
 function DOMContentLoadedListener() {
     console.log('in listener')
 
@@ -371,15 +424,25 @@ chrome.tabs.getSelected(null, function(tab) {
             for (var i in response) {
                 var uri = response[i];
                 console.log(uri);
+
                 var video = document.createElement('iframe');
                 video.setAttribute('width', '320');
                 video.setAttribute('height', '240');
                 video.setAttribute('frameborder', '0');
                 video.setAttribute('allowfullscreen', 'true');
-                var src = 'https://www.youtube.com/embed/' + uri.substring(uri.lastIndexOf('=') + 1);
+                var videoId = uri.substring(uri.lastIndexOf('=') + 1);
+                var src = 'https://www.youtube.com/embed/' + videoId;
                 console.log(src);
                 video.setAttribute('src', src);
                 document.body.appendChild(video);
+
+                var button = document.createElement('button');
+                button.setAttribute('height', '30px');
+                button.setAttribute('width', '40px');
+                console.log('binding videoId ' + videoId);
+                button.onclick = addVideo.bind(null, uri);
+                button.innerText = 'Add';
+                document.body.appendChild(button);
             }
         } else {
             document.body.innerText = 'No video on page. :-(';
