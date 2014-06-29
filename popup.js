@@ -399,7 +399,7 @@ function addVideo(videoId) {
                     }
                 });
             } else {
-                login();                 
+                login();
                 //addVideo();
             }
         },
